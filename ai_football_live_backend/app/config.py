@@ -31,12 +31,19 @@ class CacheSettings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379"
 
 
+class CORSSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    CORS_ORIGINS: str = "*"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database: DatabaseSettings = DatabaseSettings()
     ai: AISettings = AISettings()
     cache: CacheSettings = CacheSettings()
+    cors: CORSSettings = CORSSettings()
 
 
 settings = Settings()
