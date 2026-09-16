@@ -124,7 +124,7 @@ class DataSyncService:
                     })
                     await db.flush()
 
-                    events = await self._provider.get_match_events(match.id)
+                    events = await self._provider.get_match_events(match.external_id)
                     if events:
                         event_dicts = []
                         for evt in events:
@@ -141,7 +141,7 @@ class DataSyncService:
                             })
                         await match_repo.upsert_events(match_db.id, event_dicts)
 
-                    stats = await self._provider.get_match_statistics(match.id)
+                    stats = await self._provider.get_match_statistics(match.external_id)
                     if stats:
                         stat_dicts = []
                         for stat in stats:
