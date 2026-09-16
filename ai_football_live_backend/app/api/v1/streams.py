@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.engine import async_session
+from app.api.deps import get_db
 from app.providers.stream.authorized_provider import AuthorizedStreamProvider
 from app.services.stream_service import StreamService
 from app.database.repositories.match_repo import MatchRepository, LeagueRepository
@@ -12,11 +12,6 @@ from app.api.error_handlers import APIError
 from app.core.enums.error_codes import ErrorCode
 
 router = APIRouter()
-
-
-async def get_db():
-    async with async_session() as session:
-        yield session
 
 
 @router.get("/matches/{match_id}/streams")

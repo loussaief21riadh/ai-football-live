@@ -4,18 +4,13 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.engine import async_session
+from app.api.deps import get_db
 from app.services.match_service import MatchService
 from app.database.repositories.match_repo import MatchRepository, LeagueRepository
 from app.api.error_handlers import APIError
 from app.core.enums.error_codes import ErrorCode
 
 router = APIRouter()
-
-
-async def get_db():
-    async with async_session() as session:
-        yield session
 
 
 def _match_to_dict(match) -> dict[str, Any]:

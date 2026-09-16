@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.engine import async_session
+from app.api.deps import get_db
 from app.database.repositories.match_repo import MatchRepository, LeagueRepository
 from app.services.match_service import MatchService
 from app.services.ai.analysis_service import AnalysisService
@@ -12,11 +12,6 @@ from app.api.error_handlers import APIError
 from app.core.enums.error_codes import ErrorCode
 
 router = APIRouter()
-
-
-async def get_db():
-    async with async_session() as session:
-        yield session
 
 
 @router.get("/matches/{match_id}/ai-analysis")
