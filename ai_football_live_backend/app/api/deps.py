@@ -6,7 +6,8 @@ from app.services.match_service import MatchService
 from app.services.stream_service import StreamService
 from app.services.ai.analysis_service import AnalysisService
 from app.providers.ai.factory import create_ai_provider
-from app.providers.football_data.mock_provider import MockFootballProvider
+from app.providers.football_data.base import FootballDataProvider
+from app.providers.football.factory import create_football_provider
 from app.providers.cache.memory_provider import InMemoryCacheProvider
 from app.providers.cache.base import CacheProvider
 from app.providers.stream.authorized_provider import AuthorizedStreamProvider
@@ -34,8 +35,8 @@ def get_analysis_service() -> AnalysisService:
     return AnalysisService(ai_provider)
 
 
-def get_football_provider() -> MockFootballProvider:
-    return MockFootballProvider()
+def get_football_provider() -> FootballDataProvider:
+    return create_football_provider()
 
 
 def get_cache_provider() -> CacheProvider:

@@ -33,6 +33,18 @@ class CacheSettings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379"
 
 
+class FootballSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    FOOTBALL_PROVIDER: str = "mock"
+    FOOTBALL_API_KEY: str = ""
+    FOOTBALL_API_BASE_URL: str = "https://v3.football.api-sports.io"
+    FOOTBALL_API_TIMEOUT_SECONDS: int = 10
+    FOOTBALL_POLL_INTERVAL_SECONDS: int = 900
+    FOOTBALL_LEAGUE_IDS: str = ""
+    FOOTBALL_SEASON: str = ""
+
+
 class CORSSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -44,6 +56,7 @@ class Settings(BaseSettings):
 
     database: DatabaseSettings = DatabaseSettings()
     ai: AISettings = AISettings()
+    football: FootballSettings = FootballSettings()
     cache: CacheSettings = CacheSettings()
     cors: CORSSettings = CORSSettings()
 

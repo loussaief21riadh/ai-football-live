@@ -1,0 +1,25 @@
+{
+  "get": "fixtures/statistics",
+  "parameters": {"fixture": "1123458"},
+  "errors": [],
+  "results": 2,
+  "paging": {"current": 1, "total": 1},
+  "response": [
+    {
+      "team": {"id": 33, "name": "Manchester United"},
+      "statistics": [
+        {"type": "Ball Possession", "value": null},
+        {"type": "Total Shots", "value": null},
+        {"type": "Corner Kicks", "value": null}
+      ]
+    },
+    {
+      "team": {"id": 40, "name": "Liverpool"},
+      "statistics": [
+        {"type": "Ball Possession", "value": null},
+        {"type": "Total Shots", "value": null},
+        {"type": "Corner Kicks", "value": null}
+      ]
+    }
+  ]
+}

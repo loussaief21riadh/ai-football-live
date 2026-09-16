@@ -40,7 +40,7 @@ class DataSyncService:
         logger.info("DataSyncService stopped")
 
     async def _sync_loop(self) -> None:
-        sync_interval = 30
+        sync_interval = settings.football.FOOTBALL_POLL_INTERVAL_SECONDS
 
         while self._running:
             try:

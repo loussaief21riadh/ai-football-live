@@ -1,0 +1,63 @@
+{
+  "get": "fixtures/events",
+  "parameters": {"fixture": "1123456"},
+  "errors": [],
+  "results": 6,
+  "paging": {"current": 1, "total": 1},
+  "response": [
+    {
+      "time": {"elapsed": 23, "extra": null},
+      "team": {"id": 42, "name": "Arsenal"},
+      "player": {"id": 101, "name": "Bukayo Saka"},
+      "assist": {"id": 102, "name": "Martin Odegaard"},
+      "type": "Goal",
+      "detail": "Normal Goal",
+      "comments": null
+    },
+    {
+      "time": {"elapsed": 35, "extra": null},
+      "team": {"id": 49, "name": "Chelsea"},
+      "player": {"id": 201, "name": "Enzo Fernandez"},
+      "assist": {"id": null, "name": null},
+      "type": "Card",
+      "detail": "Yellow Card",
+      "comments": null
+    },
+    {
+      "time": {"elapsed": 56, "extra": null},
+      "team": {"id": 42, "name": "Arsenal"},
+      "player": {"id": 103, "name": "Kai Havertz"},
+      "assist": {"id": 104, "name": "Leandro Trossard"},
+      "type": "Goal",
+      "detail": "Normal Goal",
+      "comments": null
+    },
+    {
+      "time": {"elapsed": 62, "extra": 3},
+      "team": {"id": 49, "name": "Chelsea"},
+      "player": {"id": 202, "name": "Cole Palmer"},
+      "assist": {"id": 203, "name": "Noni Madueke"},
+      "type": "Goal",
+      "detail": "Normal Goal",
+      "comments": null
+    },
+    {
+      "time": {"elapsed": 71, "extra": null},
+      "team": {"id": 42, "name": "Arsenal"},
+      "player": {"id": 105, "name": "Declan Rice"},
+      "assist": {"id": null, "name": null},
+      "type": "Var",
+      "detail": "VAR Decision",
+      "comments": "Goal confirmed after VAR review"
+    },
+    {
+      "time": {"elapsed": 80, "extra": null},
+      "team": {"id": 49, "name": "Chelsea"},
+      "player": {"id": 204, "name": "Wesley Fofana"},
+      "assist": {"id": 205, "name": "Moises Caicedo"},
+      "type": "subst",
+      "detail": "Substitution",
+      "comments": null
+    }
+  ]
+}

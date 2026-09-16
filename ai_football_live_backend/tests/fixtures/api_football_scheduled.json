@@ -1,0 +1,41 @@
+{
+  "get": "fixtures",
+  "parameters": {"next": "24"},
+  "errors": [],
+  "results": 1,
+  "paging": {"current": 1, "total": 1},
+  "response": [
+    {
+      "fixture": {
+        "id": 1123460,
+        "referee": "Anthony Taylor",
+        "timezone": "UTC",
+        "date": "2026-09-16T19:00:00+00:00",
+        "timestamp": 1758049200,
+        "periods": {"first": null, "second": null},
+        "venue": {"id": 574, "name": "Old Trafford", "city": "Manchester"},
+        "status": {"long": "Not Started", "short": "NS", "elapsed": null}
+      },
+      "league": {
+        "id": 39,
+        "name": "Premier League",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/39.png",
+        "flag": "https://media.api-sports.io/flags/gb.svg",
+        "season": 2026
+      },
+      "teams": {
+        "home": {"id": 33, "name": "Manchester United", "logo": "https://media.api-sports.io/football/teams/33.png", "winner": null},
+        "away": {"id": 40, "name": "Liverpool", "logo": "https://media.api-sports.io/football/teams/40.png", "winner": null}
+      },
+      "goals": {"home": null, "away": null},
+      "score": {
+        "halftime": {"home": null, "away": null},
+        "fulltime": {"home": null, "away": null},
+        "extratime": {"home": null, "away": null},
+        "penalty": {"home": null, "away": null}
+      },
+      "events": []
+    }
+  ]
+}
