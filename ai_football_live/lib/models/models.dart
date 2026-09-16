@@ -21,7 +21,7 @@ class LeagueModel {
 
   factory LeagueModel.fromJson(Map<String, dynamic> json) {
     return LeagueModel(
-      id: json['id'] as int,
+      id: json['id'] as int? ?? 0,
       providerName: json['provider_name'] as String? ?? '',
       externalId: json['external_id'] as int? ?? 0,
       name: json['name'] as String? ?? '',
@@ -51,7 +51,7 @@ class TeamModel {
 
   factory TeamModel.fromJson(Map<String, dynamic> json) {
     return TeamModel(
-      id: json['id'] as int,
+      id: json['id'] as int? ?? 0,
       providerName: json['provider_name'] as String? ?? '',
       externalId: json['external_id'] as int? ?? 0,
       name: json['name'] as String? ?? '',

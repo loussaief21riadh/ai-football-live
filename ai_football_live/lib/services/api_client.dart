@@ -29,11 +29,17 @@ class ApiClient {
         .timeout(ApiConfig.timeout);
 
     if (response.statusCode != 200) {
-      final body = jsonDecode(response.body);
-      final error = body['error'] as Map<String, dynamic>?;
+      String code = 'UNKNOWN_ERROR';
+      String message = 'An unexpected error occurred';
+      try {
+        final body = jsonDecode(response.body);
+        final error = body['error'] as Map<String, dynamic>?;
+        code = error?['code'] ?? 'UNKNOWN_ERROR';
+        message = error?['message'] ?? 'An unexpected error occurred';
+      } catch (_) {}
       throw ApiException(
-        code: error?['code'] ?? 'UNKNOWN_ERROR',
-        message: error?['message'] ?? 'An unexpected error occurred',
+        code: code,
+        message: message,
         statusCode: response.statusCode,
       );
     }

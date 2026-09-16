@@ -22,9 +22,9 @@
   "verified": "تم التحقق",
   "vs": "ضد",
   "unknown": "غير معروف",
-  "assistedBy": "ركلة حاسمة: {player}",
+  "assistedBy": "صُناعة: {player}",
   "@assistedBy": {
-    "description": "يتم عرضها عندما يتم تسجيل ركلة حاسمة للاعب"
+    "description": "يتم عرضها عندما يُصنّع لاعب هدفاً"
   },
   "highValidation": "ثقة عالية",
   "partialValidation": "ثقة جزئية",

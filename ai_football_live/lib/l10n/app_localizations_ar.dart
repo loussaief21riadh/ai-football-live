@@ -76,7 +76,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String assistedBy(Object player) {
-    return 'ركلة حاسمة: $player';
+    return 'صُناعة: $player';
   }
 
   @override

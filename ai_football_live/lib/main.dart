@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'config/theme.dart';
+import 'l10n/app_localizations.dart';
 import 'services/api_client.dart';
 import 'screens/home_screen.dart';
 import 'screens/match_detail_screen.dart';
@@ -21,6 +22,8 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: const HomeScreen(),
         onGenerateRoute: (settings) {
           if (settings.name == '/match') {
