@@ -11,9 +11,11 @@ class AISettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     AI_PROVIDER: str = "mock"
+    AI_TIMEOUT_SECONDS: int = 30
+    AI_TEMPERATURE: float = 0.3
 
     GROQ_API_KEY: str = ""
-    GROQ_MODEL: str = ""
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
     GROQ_BASE_URL: str = ""
     GROQ_APP_MAX_REQUESTS_PER_MINUTE: int = 30
     GROQ_APP_MAX_REQUESTS_PER_DAY: int = 14400

@@ -6,7 +6,7 @@ from app.services.match_service import MatchService
 from app.services.stream_service import StreamService
 from app.services.ai.analysis_service import AnalysisService
 from app.providers.football_data.mock_provider import MockFootballProvider
-from app.providers.ai.mocks.mock_provider import MockAIProvider
+from app.providers.ai.factory import create_ai_provider
 from app.providers.cache.memory_provider import InMemoryCacheProvider
 from app.providers.stream.authorized_provider import AuthorizedStreamProvider
 from app.config import settings
@@ -29,7 +29,7 @@ def get_stream_service(db: AsyncSession) -> StreamService:
 
 
 def get_analysis_service() -> AnalysisService:
-    ai_provider = MockAIProvider()
+    ai_provider = create_ai_provider()
     return AnalysisService(ai_provider)
 
 

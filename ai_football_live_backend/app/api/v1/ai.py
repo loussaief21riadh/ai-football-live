@@ -7,7 +7,7 @@ from app.database.engine import async_session
 from app.database.repositories.match_repo import MatchRepository, LeagueRepository
 from app.services.match_service import MatchService
 from app.services.ai.analysis_service import AnalysisService
-from app.providers.ai.mocks.mock_provider import MockAIProvider
+from app.providers.ai.factory import create_ai_provider
 from app.api.error_handlers import APIError
 from app.core.enums.error_codes import ErrorCode
 
@@ -36,7 +36,7 @@ async def get_ai_analysis(
             message=f"Match {match_id} not found",
         )
 
-    ai_provider = MockAIProvider()
+    ai_provider = create_ai_provider()
     analysis_service = AnalysisService(ai_provider)
     analysis = await analysis_service.generate_analysis(match, type)
 
