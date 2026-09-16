@@ -2,8 +2,8 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine
 
+from app.database.engine import engine
 from app.config import settings
 
 router = APIRouter()
@@ -11,17 +11,11 @@ router = APIRouter()
 
 async def _check_database() -> dict:
     try:
-        probe = create_async_engine(
-            settings.database.DATABASE_URL,
-            pool_pre_ping=True,
-            pool_size=1,
-        )
-        async with probe.connect() as conn:
+        async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
-        await probe.dispose()
         return {"database": "ok"}
-    except Exception as e:
-        return {"database": "error", "detail": str(e)}
+    except Exception:
+        return {"database": "error"}
 
 
 async def _check_redis() -> dict:
@@ -34,8 +28,8 @@ async def _check_redis() -> dict:
         return {"redis": "ok"}
     except ImportError:
         return {"redis": "skipped", "detail": "redis not installed"}
-    except Exception as e:
-        return {"redis": "error", "detail": str(e)}
+    except Exception:
+        return {"redis": "error"}
 
 
 @router.get("/health")

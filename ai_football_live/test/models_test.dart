@@ -419,5 +419,206 @@ void main() {
       expect(stream.embedUrl, isNull);
       expect(stream.alternatives, 0);
     });
+
+    test('fromJson handles non-Map stream field gracefully', () {
+      final json = {
+        'available': false,
+        'stream': 'invalid',
+        'message': 'No stream',
+        'alternatives': 0,
+      };
+
+      final stream = StreamInfoModel.fromJson(json);
+      expect(stream.available, false);
+      expect(stream.embedUrl, isNull);
+    });
+  });
+
+  group('MatchModel hardening', () {
+    test('throws FormatException when id is missing', () {
+      final json = {
+        'provider_name': 'mock',
+        'league': {'id': 1, 'provider_name': 'mock', 'external_id': 1, 'name': 'L'},
+        'home_team': {'id': 1, 'provider_name': 'mock', 'external_id': 1, 'name': 'H'},
+        'away_team': {'id': 2, 'provider_name': 'mock', 'external_id': 2, 'name': 'A'},
+        'status': 'live',
+        'match_date': '2026-01-01T00:00:00Z',
+      };
+
+      expect(() => MatchModel.fromJson(json), throwsFormatException);
+    });
+
+    test('throws FormatException when id is null', () {
+      final json = {
+        'id': null,
+        'provider_name': 'mock',
+        'league': {'id': 1, 'provider_name': 'mock', 'external_id': 1, 'name': 'L'},
+        'home_team': {'id': 1, 'provider_name': 'mock', 'external_id': 1, 'name': 'H'},
+        'away_team': {'id': 2, 'provider_name': 'mock', 'external_id': 2, 'name': 'A'},
+        'status': 'live',
+        'match_date': '2026-01-01T00:00:00Z',
+      };
+
+      expect(() => MatchModel.fromJson(json), throwsFormatException);
+    });
+
+    test('throws FormatException when league is missing', () {
+      final json = {
+        'id': 1,
+        'provider_name': 'mock',
+        'home_team': {'id': 1, 'provider_name': 'mock', 'external_id': 1, 'name': 'H'},
+        'away_team': {'id': 2, 'provider_name': 'mock', 'external_id': 2, 'name': 'A'},
+        'status': 'live',
+        'match_date': '2026-01-01T00:00:00Z',
+      };
+
+      expect(() => MatchModel.fromJson(json), throwsFormatException);
+    });
+
+    test('throws FormatException when league is wrong type', () {
+      final json = {
+        'id': 1,
+        'provider_name': 'mock',
+        'league': 'not_a_map',
+        'home_team': {'id': 1, 'provider_name': 'mock', 'external_id': 1, 'name': 'H'},
+        'away_team': {'id': 2, 'provider_name': 'mock', 'external_id': 2, 'name': 'A'},
+        'status': 'live',
+        'match_date': '2026-01-01T00:00:00Z',
+      };
+
+      expect(() => MatchModel.fromJson(json), throwsFormatException);
+    });
+
+    test('throws FormatException when home_team is missing', () {
+      final json = {
+        'id': 1,
+        'provider_name': 'mock',
+        'league': {'id': 1, 'provider_name': 'mock', 'external_id': 1, 'name': 'L'},
+        'away_team': {'id': 2, 'provider_name': 'mock', 'external_id': 2, 'name': 'A'},
+        'status': 'live',
+        'match_date': '2026-01-01T00:00:00Z',
+      };
+
+      expect(() => MatchModel.fromJson(json), throwsFormatException);
+    });
+
+    test('throws FormatException when match_date is missing', () {
+      final json = {
+        'id': 1,
+        'provider_name': 'mock',
+        'league': {'id': 1, 'provider_name': 'mock', 'external_id': 1, 'name': 'L'},
+        'home_team': {'id': 1, 'provider_name': 'mock', 'external_id': 1, 'name': 'H'},
+        'away_team': {'id': 2, 'provider_name': 'mock', 'external_id': 2, 'name': 'A'},
+        'status': 'live',
+      };
+
+      expect(() => MatchModel.fromJson(json), throwsFormatException);
+    });
+
+    test('throws FormatException when match_date is malformed', () {
+      final json = {
+        'id': 1,
+        'provider_name': 'mock',
+        'league': {'id': 1, 'provider_name': 'mock', 'external_id': 1, 'name': 'L'},
+        'home_team': {'id': 1, 'provider_name': 'mock', 'external_id': 1, 'name': 'H'},
+        'away_team': {'id': 2, 'provider_name': 'mock', 'external_id': 2, 'name': 'A'},
+        'status': 'live',
+        'match_date': 'not-a-date',
+      };
+
+      expect(() => MatchModel.fromJson(json), throwsFormatException);
+    });
+
+    test('does not substitute DateTime.now() for missing match_date', () {
+      final json = {
+        'id': 1,
+        'provider_name': 'mock',
+        'league': {'id': 1, 'provider_name': 'mock', 'external_id': 1, 'name': 'L'},
+        'home_team': {'id': 1, 'provider_name': 'mock', 'external_id': 1, 'name': 'H'},
+        'away_team': {'id': 2, 'provider_name': 'mock', 'external_id': 2, 'name': 'A'},
+        'status': 'live',
+      };
+
+      expect(() => MatchModel.fromJson(json), throwsFormatException);
+    });
+  });
+
+  group('MatchEventModel hardening', () {
+    test('handles null id gracefully', () {
+      final json = {
+        'event_type': 'goal',
+        'minute': 45,
+      };
+
+      final event = MatchEventModel.fromJson(json);
+      expect(event.id, 0);
+    });
+
+    test('handles non-int id gracefully', () {
+      final json = {
+        'id': 'not_an_int',
+        'event_type': 'goal',
+        'minute': 45,
+      };
+
+      final event = MatchEventModel.fromJson(json);
+      expect(event.id, 0);
+    });
+  });
+
+  group('MatchStatisticModel hardening', () {
+    test('handles null id gracefully', () {
+      final json = {
+        'stat_type': 'possession',
+        'home_value': '58',
+        'away_value': '42',
+      };
+
+      final stat = MatchStatisticModel.fromJson(json);
+      expect(stat.id, 0);
+    });
+
+    test('handles non-int id gracefully', () {
+      final json = {
+        'id': 'not_an_int',
+        'stat_type': 'possession',
+      };
+
+      final stat = MatchStatisticModel.fromJson(json);
+      expect(stat.id, 0);
+    });
+  });
+
+  group('AIAnalysisModel hardening', () {
+    test('throws FormatException when generated_at is missing', () {
+      final json = {
+        'match_id': 1,
+        'analysis_type': 'live',
+        'interpretation': 'Test',
+      };
+
+      expect(() => AIAnalysisModel.fromJson(json), throwsFormatException);
+    });
+
+    test('throws FormatException when generated_at is malformed', () {
+      final json = {
+        'match_id': 1,
+        'analysis_type': 'live',
+        'interpretation': 'Test',
+        'generated_at': 'not-a-date',
+      };
+
+      expect(() => AIAnalysisModel.fromJson(json), throwsFormatException);
+    });
+
+    test('does not substitute DateTime.now() for missing generated_at', () {
+      final json = {
+        'match_id': 1,
+        'analysis_type': 'live',
+        'interpretation': 'Test',
+      };
+
+      expect(() => AIAnalysisModel.fromJson(json), throwsFormatException);
+    });
   });
 }

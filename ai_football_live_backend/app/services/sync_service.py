@@ -40,15 +40,13 @@ class DataSyncService:
         logger.info("DataSyncService stopped")
 
     async def _sync_loop(self) -> None:
-        interval = settings.ai.AI_TIMEOUT_SECONDS  # reuse for now, or use a dedicated setting
-        # Use a sensible default if not configured
         sync_interval = 30
 
         while self._running:
             try:
                 await self._sync_once()
             except Exception as e:
-                logger.error(f"Sync error: {e}")
+                logger.error("Sync error: %s", type(e).__name__)
 
             await asyncio.sleep(sync_interval)
 
@@ -60,45 +58,27 @@ class DataSyncService:
                 team_repo = TeamRepository(db)
                 match_repo = MatchRepository(db)
 
-                # Sync leagues
                 leagues = await self._provider.get_leagues()
                 league_id_map = {}
                 for league_data in leagues:
                     league = await league_repo.upsert({
-                        "provider_name": "mock",
-                        "external_id": league_data.id,
+                        "provider_name": league_data.provider_name,
+                        "external_id": league_data.external_id,
                         "name": league_data.name,
                         "country": league_data.country,
                         "logo_url": league_data.logo_url,
                         "season": league_data.season,
                     })
                     await db.flush()
-                    league_id_map[league_data.id] = league.id
+                    league_id_map[league_data.external_id] = league.id
 
-                # Sync teams (from matches)
                 team_id_map = {}
-                for match_data in [await self._provider.get_match_by_internal_id(i) for i in range(1, 5)]:
-                    if match_data is None:
-                        continue
-                    for team in [match_data.home_team, match_data.away_team]:
-                        key = (team.provider_name, team.external_id)
-                        if key not in team_id_map:
-                            db_team = await team_repo.upsert({
-                                "provider_name": team.provider_name,
-                                "external_id": team.external_id,
-                                "name": team.name,
-                                "short_name": team.short_name,
-                                "logo_url": team.logo_url,
-                            })
-                            await db.flush()
-                            team_id_map[key] = db_team.id
 
-                # Sync live matches
                 live_matches = await self._provider.get_live_matches()
-                for match in live_matches:
-                    home_key = (match.home_team.provider_name, match.home_team.external_id)
-                    away_key = (match.away_team.provider_name, match.away_team.external_id)
+                upcoming_matches = await self._provider.get_upcoming_matches(hours=24)
+                all_matches = live_matches + upcoming_matches
 
+                for match in all_matches:
                     home_team_db = await team_repo.upsert({
                         "provider_name": match.home_team.provider_name,
                         "external_id": match.home_team.external_id,
@@ -115,7 +95,6 @@ class DataSyncService:
                     })
                     await db.flush()
 
-                    league_key = (match.league.provider_name, match.league.external_id)
                     league_db = await league_repo.upsert({
                         "provider_name": match.league.provider_name,
                         "external_id": match.league.external_id,
@@ -126,7 +105,7 @@ class DataSyncService:
                     })
                     await db.flush()
 
-                    await match_repo.upsert({
+                    match_db = await match_repo.upsert({
                         "provider_name": match.provider_name,
                         "external_id": match.external_id,
                         "league_id": league_db.id,
@@ -145,8 +124,36 @@ class DataSyncService:
                     })
                     await db.flush()
 
+                    events = await self._provider.get_match_events(match.id)
+                    if events:
+                        event_dicts = []
+                        for evt in events:
+                            event_dicts.append({
+                                "provider_name": evt.provider_name,
+                                "external_event_id": evt.external_event_id,
+                                "event_type": evt.event_type.value,
+                                "minute": evt.minute,
+                                "added_time": evt.added_time,
+                                "team_id": evt.team_id,
+                                "player_name": evt.player_name,
+                                "assist_player": evt.assist_player,
+                                "detail": evt.detail,
+                            })
+                        await match_repo.upsert_events(match_db.id, event_dicts)
+
+                    stats = await self._provider.get_match_statistics(match.id)
+                    if stats:
+                        stat_dicts = []
+                        for stat in stats:
+                            stat_dicts.append({
+                                "stat_type": stat.stat_type,
+                                "home_value": stat.home_value,
+                                "away_value": stat.away_value,
+                            })
+                        await match_repo.upsert_statistics(match_db.id, stat_dicts)
+
                 await db.commit()
-                logger.debug("Sync cycle completed")
+                logger.debug("Sync cycle completed: %d matches", len(all_matches))
 
             except Exception as e:
                 await db.rollback()

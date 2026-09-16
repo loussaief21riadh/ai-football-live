@@ -8,6 +8,7 @@ from app.services.ai.analysis_service import AnalysisService
 from app.providers.ai.factory import create_ai_provider
 from app.providers.football_data.mock_provider import MockFootballProvider
 from app.providers.cache.memory_provider import InMemoryCacheProvider
+from app.providers.cache.base import CacheProvider
 from app.providers.stream.authorized_provider import AuthorizedStreamProvider
 from app.config import settings
 
@@ -37,5 +38,12 @@ def get_football_provider() -> MockFootballProvider:
     return MockFootballProvider()
 
 
-def get_cache_provider() -> InMemoryCacheProvider:
+def get_cache_provider() -> CacheProvider:
+    provider = settings.cache.CACHE_PROVIDER.lower()
+    if provider == "redis":
+        try:
+            from app.providers.cache.redis_provider import RedisCacheProvider
+            return RedisCacheProvider()
+        except Exception:
+            return InMemoryCacheProvider()
     return InMemoryCacheProvider()

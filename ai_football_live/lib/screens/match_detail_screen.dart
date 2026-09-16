@@ -36,13 +36,15 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
 
     try {
       final apiClient = context.read<ApiClient>();
-      final match = await apiClient.getMatch(widget.matchId);
-      final analysis = await apiClient.getAiAnalysis(widget.matchId);
-      final streamInfo = await apiClient.getStreamInfo(widget.matchId);
+      final results = await Future.wait([
+        apiClient.getMatch(widget.matchId),
+        apiClient.getAiAnalysis(widget.matchId),
+        apiClient.getStreamInfo(widget.matchId),
+      ]);
       setState(() {
-        _match = match;
-        _analysis = analysis;
-        _streamInfo = streamInfo;
+        _match = results[0] as MatchModel;
+        _analysis = results[1] as AIAnalysisModel?;
+        _streamInfo = results[2] as StreamInfoModel;
         _loading = false;
       });
     } catch (e) {

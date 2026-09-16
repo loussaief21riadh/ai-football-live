@@ -83,8 +83,18 @@ class MatchEventModel {
   });
 
   factory MatchEventModel.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id'];
+    final int id;
+    if (rawId is int) {
+      id = rawId;
+    } else if (rawId is num) {
+      id = rawId.toInt();
+    } else {
+      id = 0;
+    }
+
     return MatchEventModel(
-      id: json['id'] as int,
+      id: id,
       eventType: EventType.fromString(json['event_type'] as String?),
       minute: json['minute'] as int? ?? 0,
       addedTime: json['added_time'] as int?,
@@ -110,8 +120,18 @@ class MatchStatisticModel {
   });
 
   factory MatchStatisticModel.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id'];
+    final int id;
+    if (rawId is int) {
+      id = rawId;
+    } else if (rawId is num) {
+      id = rawId.toInt();
+    } else {
+      id = 0;
+    }
+
     return MatchStatisticModel(
-      id: json['id'] as int,
+      id: id,
       statType: json['stat_type'] as String? ?? '',
       homeValue: json['home_value'] as String?,
       awayValue: json['away_value'] as String?,
@@ -161,13 +181,45 @@ class MatchModel {
   });
 
   factory MatchModel.fromJson(Map<String, dynamic> json) {
+    final id = json['id'];
+    if (id == null || id is! int) {
+      throw const FormatException('Match missing required field: id (expected int)');
+    }
+
+    final leagueData = json['league'];
+    if (leagueData == null || leagueData is! Map<String, dynamic>) {
+      throw const FormatException('Match missing required field: league (expected Map)');
+    }
+
+    final homeTeamData = json['home_team'];
+    if (homeTeamData == null || homeTeamData is! Map<String, dynamic>) {
+      throw const FormatException('Match missing required field: home_team (expected Map)');
+    }
+
+    final awayTeamData = json['away_team'];
+    if (awayTeamData == null || awayTeamData is! Map<String, dynamic>) {
+      throw const FormatException('Match missing required field: away_team (expected Map)');
+    }
+
+    final matchDateStr = json['match_date'];
+    if (matchDateStr == null || matchDateStr is! String) {
+      throw const FormatException('Match missing required field: match_date (expected String)');
+    }
+
+    final DateTime matchDate;
+    try {
+      matchDate = DateTime.parse(matchDateStr);
+    } catch (_) {
+      throw FormatException('Match has invalid match_date: $matchDateStr');
+    }
+
     return MatchModel(
-      id: json['id'] as int,
+      id: id,
       providerName: json['provider_name'] as String? ?? '',
       externalId: json['external_id'] as int? ?? 0,
-      league: LeagueModel.fromJson(json['league'] as Map<String, dynamic>? ?? {}),
-      homeTeam: TeamModel.fromJson(json['home_team'] as Map<String, dynamic>? ?? {}),
-      awayTeam: TeamModel.fromJson(json['away_team'] as Map<String, dynamic>? ?? {}),
+      league: LeagueModel.fromJson(leagueData),
+      homeTeam: TeamModel.fromJson(homeTeamData),
+      awayTeam: TeamModel.fromJson(awayTeamData),
       status: MatchStatus.fromString(json['status'] as String?),
       minute: json['minute'] as int?,
       addedTime: json['added_time'] as int?,
@@ -175,7 +227,7 @@ class MatchModel {
       awayScore: json['away_score'] as int? ?? 0,
       htHomeScore: json['ht_home_score'] as int?,
       htAwayScore: json['ht_away_score'] as int?,
-      matchDate: DateTime.parse(json['match_date'] as String? ?? DateTime.now().toIso8601String()),
+      matchDate: matchDate,
       venue: json['venue'] as String?,
       referee: json['referee'] as String?,
       events: (json['events'] as List<dynamic>?)
@@ -239,6 +291,18 @@ class AIAnalysisModel {
   });
 
   factory AIAnalysisModel.fromJson(Map<String, dynamic> json) {
+    final generatedAtStr = json['generated_at'];
+    final DateTime generatedAt;
+    if (generatedAtStr != null && generatedAtStr is String) {
+      try {
+        generatedAt = DateTime.parse(generatedAtStr);
+      } catch (_) {
+        throw FormatException('AIAnalysis has invalid generated_at: $generatedAtStr');
+      }
+    } else {
+      throw const FormatException('AIAnalysis missing required field: generated_at');
+    }
+
     return AIAnalysisModel(
       id: json['id'] as int?,
       matchId: json['match_id'] as int,
@@ -250,7 +314,7 @@ class AIAnalysisModel {
       dataReferences: List<Map<String, dynamic>>.from(json['data_references'] as List? ?? []),
       validationResult: json['validation_result'] as String? ?? 'pending',
       aiProvider: json['ai_provider'] as String? ?? 'unknown',
-      generatedAt: DateTime.parse(json['generated_at'] as String? ?? DateTime.now().toIso8601String()),
+      generatedAt: generatedAt,
     );
   }
 }
@@ -275,7 +339,16 @@ class StreamInfoModel {
   });
 
   factory StreamInfoModel.fromJson(Map<String, dynamic> json) {
-    final stream = json['stream'] as Map<String, dynamic>?;
+    final streamData = json['stream'];
+    final Map<String, dynamic>? stream;
+    if (streamData == null) {
+      stream = null;
+    } else if (streamData is Map<String, dynamic>) {
+      stream = streamData;
+    } else {
+      stream = null;
+    }
+
     return StreamInfoModel(
       available: json['available'] as bool? ?? false,
       embedUrl: stream?['embed_url'] as String?,

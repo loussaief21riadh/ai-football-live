@@ -22,11 +22,11 @@ class ApiClient {
       : _client = client ?? http.Client(),
         _baseUrl = baseUrl ?? ApiConfig.baseUrl;
 
-  Future<Map<String, dynamic>> _get(String path) async {
+  Future<Map<String, dynamic>> _get(String path, {Duration? timeout}) async {
     final uri = Uri.parse('$_baseUrl$path');
     final response = await _client
         .get(uri)
-        .timeout(ApiConfig.timeout);
+        .timeout(timeout ?? ApiConfig.timeout);
 
     if (response.statusCode != 200) {
       String code = 'UNKNOWN_ERROR';
@@ -86,7 +86,7 @@ class ApiClient {
   }
 
   Future<AIAnalysisModel?> getAiAnalysis(int matchId, {String type = 'live'}) async {
-    final data = await _get('/api/v1/matches/$matchId/ai-analysis?type=$type');
+    final data = await _get('/api/v1/matches/$matchId/ai-analysis?type=$type', timeout: ApiConfig.aiTimeout);
     final analysisData = data['data'] as Map<String, dynamic>;
     if (analysisData['available'] == false) return null;
     return AIAnalysisModel.fromJson(analysisData);
