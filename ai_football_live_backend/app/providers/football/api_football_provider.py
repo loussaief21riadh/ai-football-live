@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime, timezone
 
@@ -84,6 +85,10 @@ def _safe_str(value) -> str | None:
 class ApiFootballProvider(FootballDataProvider):
     """Real football data provider using API-Football v3."""
 
+    MAX_RETRIES = 3
+    RETRY_FALLBACK_DELAY = 30
+    RETRY_MAX_DELAY = 60
+
     def __init__(
         self,
         api_key: str,
@@ -111,66 +116,81 @@ class ApiFootballProvider(FootballDataProvider):
 
     async def _request(self, path: str, params: dict | None = None) -> dict:
         url = f"{self._base_url}{path}"
-        try:
-            async with httpx.AsyncClient(timeout=self._timeout) as client:
-                response = await client.get(
-                    url, headers=self._get_headers(), params=params
-                )
-        except httpx.TimeoutException as e:
-            raise FootballProviderTimeoutError(
-                f"API-Football request timed out after {self._timeout}s"
-            ) from e
-        except httpx.ConnectError as e:
-            raise FootballProviderNetworkError(
-                "Failed to connect to API-Football"
-            ) from e
-        except httpx.RequestError as e:
-            raise FootballProviderNetworkError(
-                f"API-Football request failed: {type(e).__name__}"
-            ) from e
+        last_rate_limit_error: FootballProviderRateLimitError | None = None
 
-        if response.status_code == 401 or response.status_code == 403:
-            raise FootballProviderAuthenticationError(
-                "Invalid or missing API-Football key"
-            )
+        for attempt in range(self.MAX_RETRIES):
+            try:
+                async with httpx.AsyncClient(timeout=self._timeout) as client:
+                    response = await client.get(
+                        url, headers=self._get_headers(), params=params
+                    )
+            except httpx.TimeoutException as e:
+                raise FootballProviderTimeoutError(
+                    f"API-Football request timed out after {self._timeout}s"
+                ) from e
+            except httpx.ConnectError as e:
+                raise FootballProviderNetworkError(
+                    "Failed to connect to API-Football"
+                ) from e
+            except httpx.RequestError as e:
+                raise FootballProviderNetworkError(
+                    f"API-Football request failed: {type(e).__name__}"
+                ) from e
 
-        if response.status_code == 429:
-            retry_after = response.headers.get("Retry-After")
-            retry_after_int = _safe_int(retry_after) if retry_after else None
-            raise FootballProviderRateLimitError(
-                "API-Football rate limit exceeded",
-                retry_after=retry_after_int,
-            )
-
-        if response.status_code >= 400:
-            raise FootballProviderResponseError(
-                f"API-Football HTTP {response.status_code}"
-            )
-
-        try:
-            data = response.json()
-        except Exception as e:
-            raise FootballProviderResponseError(
-                "API-Football returned invalid JSON"
-            ) from e
-
-        errors = data.get("errors", {})
-        if errors:
-            error_msg = ", ".join(f"{k}: {v}" for k, v in errors.items())
-            error_keys_lower = {k.lower() for k in errors}
-            if "token" in error_keys_lower or "key" in error_keys_lower:
+            if response.status_code == 401 or response.status_code == 403:
                 raise FootballProviderAuthenticationError(
-                    "API-Football authentication error"
+                    "Invalid or missing API-Football key"
                 )
-            if "ratelimit" in error_keys_lower:
-                raise FootballProviderRateLimitError(
-                    "API-Football rate limit exceeded"
-                )
-            raise FootballProviderResponseError(
-                f"API-Football API error: {error_msg}"
-            )
 
-        return data
+            if response.status_code == 429:
+                retry_after = response.headers.get("Retry-After")
+                retry_after_int = _safe_int(retry_after) if retry_after else None
+                last_rate_limit_error = FootballProviderRateLimitError(
+                    "API-Football rate limit exceeded",
+                    retry_after=retry_after_int,
+                )
+                if attempt < self.MAX_RETRIES - 1:
+                    delay = min(retry_after_int or self.RETRY_FALLBACK_DELAY, self.RETRY_MAX_DELAY)
+                    await asyncio.sleep(delay)
+                    continue
+                raise last_rate_limit_error
+
+            if response.status_code >= 400:
+                raise FootballProviderResponseError(
+                    f"API-Football HTTP {response.status_code}"
+                )
+
+            try:
+                data = response.json()
+            except Exception as e:
+                raise FootballProviderResponseError(
+                    "API-Football returned invalid JSON"
+                ) from e
+
+            errors = data.get("errors", {})
+            if errors:
+                error_msg = ", ".join(f"{k}: {v}" for k, v in errors.items())
+                error_keys_lower = {k.lower() for k in errors}
+                if "token" in error_keys_lower or "key" in error_keys_lower:
+                    raise FootballProviderAuthenticationError(
+                        "API-Football authentication error"
+                    )
+                if "ratelimit" in error_keys_lower:
+                    last_rate_limit_error = FootballProviderRateLimitError(
+                        "API-Football rate limit exceeded"
+                    )
+                    if attempt < self.MAX_RETRIES - 1:
+                        delay = self.RETRY_FALLBACK_DELAY
+                        await asyncio.sleep(delay)
+                        continue
+                    raise last_rate_limit_error
+                raise FootballProviderResponseError(
+                    f"API-Football API error: {error_msg}"
+                )
+
+            return data
+
+        raise last_rate_limit_error
 
     def _parse_league(self, league_data: dict, country_data: dict | None = None) -> League:
         league_info = league_data if "id" in league_data else {}

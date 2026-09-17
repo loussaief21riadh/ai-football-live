@@ -139,8 +139,9 @@ class TestRateLimit:
             mock_instance.__aexit__ = AsyncMock(return_value=False)
             mock_client.return_value = mock_instance
 
-            with pytest.raises(FootballProviderRateLimitError):
-                await provider.get_live_matches()
+            with patch("app.providers.football.api_football_provider.asyncio.sleep", new_callable=AsyncMock):
+                with pytest.raises(FootballProviderRateLimitError):
+                    await provider.get_live_matches()
 
     @pytest.mark.asyncio
     async def test_429_with_retry_after(self):
@@ -154,9 +155,11 @@ class TestRateLimit:
             mock_instance.__aexit__ = AsyncMock(return_value=False)
             mock_client.return_value = mock_instance
 
-            with pytest.raises(FootballProviderRateLimitError) as exc_info:
-                await provider.get_live_matches()
-            assert exc_info.value.retry_after == 60
+            with patch("app.providers.football.api_football_provider.asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+                with pytest.raises(FootballProviderRateLimitError) as exc_info:
+                    await provider.get_live_matches()
+                assert exc_info.value.retry_after == 60
+                assert mock_sleep.call_count == provider.MAX_RETRIES - 1
 
     @pytest.mark.asyncio
     async def test_api_ratelimit_error(self):
@@ -169,8 +172,9 @@ class TestRateLimit:
             mock_instance.__aexit__ = AsyncMock(return_value=False)
             mock_client.return_value = mock_instance
 
-            with pytest.raises(FootballProviderRateLimitError):
-                await provider.get_live_matches()
+            with patch("app.providers.football.api_football_provider.asyncio.sleep", new_callable=AsyncMock):
+                with pytest.raises(FootballProviderRateLimitError):
+                    await provider.get_live_matches()
 
 
 class TestNetworkErrors:
