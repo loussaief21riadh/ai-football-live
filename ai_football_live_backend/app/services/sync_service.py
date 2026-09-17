@@ -73,8 +73,6 @@ class DataSyncService:
                     await db.flush()
                     league_id_map[league_data.external_id] = league.id
 
-                team_id_map = {}
-
                 live_matches = await self._provider.get_live_matches()
                 upcoming_matches = await self._provider.get_upcoming_matches(hours=24)
                 all_matches = live_matches + upcoming_matches

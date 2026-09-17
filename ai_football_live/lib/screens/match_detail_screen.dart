@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../services/api_client.dart';
 import '../models/enums.dart';
 import '../models/models.dart';
@@ -57,42 +58,48 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_match != null
             ? '${_match!.homeTeam.shortName ?? _match!.homeTeam.name} vs ${_match!.awayTeam.shortName ?? _match!.awayTeam.name}'
-            : 'Match Detail'),
+            : l10n.matchDetail),
       ),
       body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
-    if (_loading) return const LoadingWidget(message: 'Loading match...');
+    if (_loading) return LoadingWidget(message: AppLocalizations.of(context)!.loadingMatch);
     if (_error != null) return AppErrorWidget(message: _error!, onRetry: _loadMatch);
-    if (_match == null) return const EmptyWidget(message: 'Match not found');
+    if (_match == null) return EmptyWidget(message: AppLocalizations.of(context)!.matchNotFound);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildMatchHeader(),
-          const SizedBox(height: 16),
-          _buildStreamSection(),
-          const SizedBox(height: 16),
-          if (_match!.events.isNotEmpty) ...[
-            _buildEventsSection(),
+    return RefreshIndicator(
+      onRefresh: _loadMatch,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildMatchHeader(),
             const SizedBox(height: 16),
-          ],
-          if (_match!.statistics.isNotEmpty) ...[
-            _buildStatisticsSection(),
+            _buildStreamSection(),
             const SizedBox(height: 16),
+            if (_match!.events.isNotEmpty) ...[
+              _buildEventsSection(),
+              const SizedBox(height: 16),
+            ],
+            if (_match!.statistics.isNotEmpty) ...[
+              _buildStatisticsSection(),
+              const SizedBox(height: 16),
+            ],
+            if (_analysis != null) ...[
+              _buildAnalysisSection(),
+            ],
           ],
-          if (_analysis != null) ...[
-            _buildAnalysisSection(),
-          ],
-        ],
+        ),
       ),
     );
   }
@@ -159,15 +166,17 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
       return const NoStreamPlaceholder();
     }
 
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Live Stream',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Text(
+              l10n.aiAnalysis,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Row(
@@ -176,7 +185,7 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    _streamInfo!.message.isNotEmpty ? _streamInfo!.message : 'Stream available',
+                    _streamInfo!.message.isNotEmpty ? _streamInfo!.message : '',
                     style: const TextStyle(fontSize: 14),
                   ),
                 ),
@@ -185,7 +194,7 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
             if (_streamInfo!.quality != null) ...[
               const SizedBox(height: 4),
               Text(
-                'Quality: ${_streamInfo!.quality}',
+                _streamInfo!.quality!,
                 style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
@@ -196,15 +205,17 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
   }
 
   Widget _buildEventsSection() {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Events',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Text(
+              l10n.events,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             ...(_match!.events.map((event) => _buildEventItem(event))),
@@ -272,15 +283,17 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
   }
 
   Widget _buildStatisticsSection() {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Statistics',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Text(
+              l10n.statistics,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             ...(_match!.statistics.map((stat) => _buildStatItem(stat))),
@@ -323,6 +336,8 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
   }
 
   Widget _buildAnalysisSection() {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -332,9 +347,9 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'AI Analysis',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Text(
+                  l10n.aiAnalysis,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -347,7 +362,7 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    '${(_analysis!.referenceValidationRate * 100).round()}% verified',
+                    '${(_analysis!.referenceValidationRate * 100).round()}% ${l10n.verified}',
                     style: const TextStyle(fontSize: 11),
                   ),
                 ),

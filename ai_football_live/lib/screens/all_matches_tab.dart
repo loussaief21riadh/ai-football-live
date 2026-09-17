@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../services/api_client.dart';
 import '../models/models.dart';
 import '../widgets/match_card.dart';
@@ -47,9 +48,11 @@ class _AllMatchesTabState extends State<AllMatchesTab> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const LoadingWidget(message: 'Loading matches...');
+    final l10n = AppLocalizations.of(context)!;
+
+    if (_loading) return LoadingWidget(message: l10n.loadingMatches);
     if (_error != null) return AppErrorWidget(message: _error!, onRetry: _loadMatches);
-    if (_matches.isEmpty) return const EmptyWidget(message: 'No matches available');
+    if (_matches.isEmpty) return EmptyWidget(message: l10n.noMatches);
 
     return RefreshIndicator(
       onRefresh: _loadMatches,

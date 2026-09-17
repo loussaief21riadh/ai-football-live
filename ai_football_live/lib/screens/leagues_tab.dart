@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../services/api_client.dart';
 import '../models/models.dart';
 import '../widgets/loading_states.dart';
@@ -45,9 +46,11 @@ class _LeaguesTabState extends State<LeaguesTab> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const LoadingWidget(message: 'Loading leagues...');
+    final l10n = AppLocalizations.of(context)!;
+
+    if (_loading) return LoadingWidget(message: l10n.loadingLeagues);
     if (_error != null) return AppErrorWidget(message: _error!, onRetry: _loadLeagues);
-    if (_leagues.isEmpty) return const EmptyWidget(message: 'No leagues available');
+    if (_leagues.isEmpty) return EmptyWidget(message: l10n.noLeagues);
 
     return RefreshIndicator(
       onRefresh: _loadLeagues,

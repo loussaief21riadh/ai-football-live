@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'live_matches_tab.dart';
 import 'all_matches_tab.dart';
 import 'leagues_tab.dart';
@@ -15,26 +16,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Football Live'),
+        title: Text(l10n.appTitle),
       ),
       body: _buildBody(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.live_tv),
-            label: 'Live',
+            icon: const Icon(Icons.live_tv),
+            label: l10n.live,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.sports_soccer),
-            label: 'All Matches',
+            icon: const Icon(Icons.sports_soccer),
+            label: l10n.allMatches,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.leaderboard),
-            label: 'Leagues',
+            icon: const Icon(Icons.leaderboard),
+            label: l10n.leagues,
           ),
         ],
       ),

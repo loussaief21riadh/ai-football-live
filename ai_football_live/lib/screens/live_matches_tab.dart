@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../services/api_client.dart';
 import '../models/models.dart';
 import '../widgets/match_card.dart';
@@ -17,39 +19,54 @@ class _LiveMatchesTabState extends State<LiveMatchesTab> {
   List<MatchModel> _matches = [];
   bool _loading = true;
   String? _error;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _loadMatches();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) => _loadMatches());
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadMatches() async {
+    if (!mounted) return;
     setState(() {
-      _loading = true;
+      _loading = _matches.isEmpty;
       _error = null;
     });
 
     try {
       final apiClient = context.read<ApiClient>();
       final matches = await apiClient.getLiveMatches();
-      setState(() {
-        _matches = matches;
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _matches = matches;
+          _loading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const LoadingWidget(message: 'Loading live matches...');
+    final l10n = AppLocalizations.of(context)!;
+
+    if (_loading) return LoadingWidget(message: l10n.loadingLiveMatches);
     if (_error != null) return AppErrorWidget(message: _error!, onRetry: _loadMatches);
-    if (_matches.isEmpty) return const EmptyWidget(message: 'No live matches at the moment');
+    if (_matches.isEmpty) return EmptyWidget(message: l10n.noLiveMatches);
 
     return RefreshIndicator(
       onRefresh: _loadMatches,
