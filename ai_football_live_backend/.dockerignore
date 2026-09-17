@@ -21,5 +21,4 @@ Dockerfile
 docker-compose*.yml
 *.md
 LICENSE
-alembic
 scripts
