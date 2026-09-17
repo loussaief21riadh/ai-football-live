@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from app.database.engine import async_session
 from app.database.repositories.match_repo import MatchRepository, LeagueRepository, TeamRepository
 from app.providers.football_data.base import FootballDataProvider
+from app.core.enums.match_status import MatchStatus
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -124,33 +125,34 @@ class DataSyncService:
                     })
                     await db.flush()
 
-                    events = await self._provider.get_match_events(match.external_id)
-                    if events:
-                        event_dicts = []
-                        for evt in events:
-                            event_dicts.append({
-                                "provider_name": evt.provider_name,
-                                "external_event_id": evt.external_event_id,
-                                "event_type": evt.event_type.value,
-                                "minute": evt.minute,
-                                "added_time": evt.added_time,
-                                "team_id": evt.team_id,
-                                "player_name": evt.player_name,
-                                "assist_player": evt.assist_player,
-                                "detail": evt.detail,
-                            })
-                        await match_repo.upsert_events(match_db.id, event_dicts)
+                    if match.status in (MatchStatus.LIVE, MatchStatus.HALFTIME, MatchStatus.FINISHED):
+                        events = await self._provider.get_match_events(match.external_id)
+                        if events:
+                            event_dicts = []
+                            for evt in events:
+                                event_dicts.append({
+                                    "provider_name": evt.provider_name,
+                                    "external_event_id": evt.external_event_id,
+                                    "event_type": evt.event_type.value,
+                                    "minute": evt.minute,
+                                    "added_time": evt.added_time,
+                                    "team_id": evt.team_id,
+                                    "player_name": evt.player_name,
+                                    "assist_player": evt.assist_player,
+                                    "detail": evt.detail,
+                                })
+                            await match_repo.upsert_events(match_db.id, event_dicts)
 
-                    stats = await self._provider.get_match_statistics(match.external_id)
-                    if stats:
-                        stat_dicts = []
-                        for stat in stats:
-                            stat_dicts.append({
-                                "stat_type": stat.stat_type,
-                                "home_value": stat.home_value,
-                                "away_value": stat.away_value,
-                            })
-                        await match_repo.upsert_statistics(match_db.id, stat_dicts)
+                        stats = await self._provider.get_match_statistics(match.external_id)
+                        if stats:
+                            stat_dicts = []
+                            for stat in stats:
+                                stat_dicts.append({
+                                    "stat_type": stat.stat_type,
+                                    "home_value": stat.home_value,
+                                    "away_value": stat.away_value,
+                                })
+                            await match_repo.upsert_statistics(match_db.id, stat_dicts)
 
                 await db.commit()
                 logger.debug("Sync cycle completed: %d matches", len(all_matches))
